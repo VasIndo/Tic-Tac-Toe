@@ -16,6 +16,12 @@ function init() {
     render();
 }
 
+function restartGame() {
+    fields = [null, null, null, null, null, null, null, null, null];
+    currentPlayer = 'circle';
+    render();
+}
+
 function handleCellClick(index) {
     if (fields[index] === null) {
         fields[index] = currentPlayer;
@@ -23,8 +29,9 @@ function handleCellClick(index) {
         td.innerHTML = currentPlayer === 'circle' ? generateCircleSVG() : generateCrossSVG();
         td.onclick = null; // Entferne das onclick-Attribut
 
-        if (checkWin()) {
-            drawWinningLine();
+        const winningCombination = checkWin();
+        if (winningCombination) {
+            drawWinningLine(winningCombination);
             // Deaktiviere alle Zellen nach einem Gewinn
             for (let i = 0; i < fields.length; i++) {
                 const cell = document.getElementById(`cell-${i}`);
@@ -58,10 +65,7 @@ function checkWin() {
     return null;
 }
 
-function drawWinningLine() {
-    const winningCombination = checkWin();
-    if (!winningCombination) return;
-
+function drawWinningLine(winningCombination) {
     const contentDiv = document.getElementById('content');
     const svgNS = "http://www.w3.org/2000/svg";
 
@@ -69,7 +73,7 @@ function drawWinningLine() {
     line.setAttribute('stroke', 'white');
     line.setAttribute('stroke-width', '5');
 
-    const [a, b, c] = winningCombination;
+    const [a, , c] = winningCombination;
 
     const positions = [
         { x: 35, y: 35 }, // Center of cell 0
@@ -83,15 +87,20 @@ function drawWinningLine() {
         { x: 175, y: 175 }, // Center of cell 8
     ];
 
-    line.setAttribute('x1', positions[a].x);
-    line.setAttribute('y1', positions[a].y);
-    line.setAttribute('x2', positions[c].x);
-    line.setAttribute('y2', positions[c].y);
+    const startX = positions[a].x;
+    const startY = positions[a].y;
+    const endX = positions[c].x;
+    const endY = positions[c].y;
+
+    line.setAttribute('x1', startX);
+    line.setAttribute('y1', startY);
+    line.setAttribute('x2', endX);
+    line.setAttribute('y2', endY);
 
     const svg = document.createElementNS(svgNS, 'svg');
     svg.setAttribute('width', '210');
     svg.setAttribute('height', '210');
-    svg.setAttribute('style', 'position: absolute; top: 0; left: 0; pointer-events: none;');
+    svg.setAttribute('style', 'position: absolute; pointer-events: none;');
 
     svg.appendChild(line);
     contentDiv.appendChild(svg);
@@ -99,7 +108,7 @@ function drawWinningLine() {
 
 function render() {
     const contentDiv = document.getElementById('content');
-    let html = '<table>';
+    let html = '<div style="position: relative;"><table>';
 
     for (let i = 0; i < 3; i++) {
         html += '<tr>';
@@ -111,10 +120,9 @@ function render() {
         html += '</tr>';
     }
 
-    html += '</table>';
+    html += '</table></div>';
     contentDiv.innerHTML = html;
 }
-
 
 function generateCircleSVG() {
     const svg = `
@@ -126,8 +134,6 @@ function generateCircleSVG() {
     `;
     return svg;
 }
-
-document.getElementById('content').innerHTML = generateCircleSVG();
 
 function generateCrossSVG() {
     const svg = `
@@ -143,4 +149,4 @@ function generateCrossSVG() {
     return svg;
 }
 
-document.getElementById('content').innerHTML = generateCrossSVG();
+init();
